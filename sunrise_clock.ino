@@ -2,6 +2,7 @@
     A sunrise/sunset IoT RGB led strip controler by Steve Olmstead 2018
     7 day timer setup trough web interface at http://soleil.local
 */
+#include <TimeLib.h>
 #include <NTPClient.h>
 #include <time.h>
 #include <WiFi.h>
@@ -385,8 +386,8 @@ void eteint() {
   r = 0;
   g = 0;
   b = 0;
-  unsigned long dureB = dureF / 2 * 60000 / 255;
-  unsigned long dureG = dureF / 3 * 2 * 60000 / 255;
+  unsigned long dureB = dureF / 3 * 60000 / 255;
+  unsigned long dureG = dureF / 2 * 60000 / 255;
   unsigned long dureR = dureF * 60000 / 255;
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillisfr >= dureR) {
@@ -634,9 +635,10 @@ void setup() {
     int ntpheure = timeClient.getHours();
     int ntpmins = timeClient.getMinutes();
     int heureux = Clock.getHour(h12, PM);
+    int epoch = timeClient.getEpochTime();
     if (h12 == 1) { //check si le rtc est en mode 12h
       if (PM == 1) { //si oui et que c'est pm
-        heureux = heureux  + 12; // ajoute 12h
+        heureux = heureux + 12; // ajoute 12h
       }
     }
     int lamin = Clock.getMinute();
@@ -646,6 +648,21 @@ void setup() {
     if (heureEte(lanee, lemois, lejour, heureux)) {
       Serial.println("heure d'ete");
       ntpheure = ntpheure + 1;
+    }
+    if ( lanee != year(epoch) % 100) {
+      Clock.setYear(year(epoch) % 100);
+      Serial.print("Anée : ");
+      Serial.println(year(epoch) % 100);
+    }
+    if ( lemois != month(epoch)) {
+      Clock.setMonth(month(epoch));
+      Serial.print("Mois : ");
+      Serial.println(month(epoch));
+    }
+    if ( lejour != day(epoch)) {
+      Clock.setDate(day(epoch));
+      Serial.print("Jour : ");
+      Serial.println(day(epoch));
     }
     if (heureux != ntpheure) {
       Clock.setHour(ntpheure);
@@ -671,12 +688,13 @@ void loop() {
       delay(6000);
     }
   }
-  if (currentMillis - previousMillist >= 3600000) { // met le RTC a jour avec le NTP chaques 1h si changements
+  if (currentMillis - previousMillist >= 60000) { // met le RTC a jour avec le NTP chaques minutes si changements
     previousMillist = currentMillis;
     if (timeClient.update()) {
       int ntpheure = timeClient.getHours();
       int ntpmins = timeClient.getMinutes();
       int heureux = Clock.getHour(h12, PM);
+      int epoch = timeClient.getEpochTime();
       if (h12 == 1) { //check si le rtc est en mode 12h
         if (PM == 1) { //si oui et que c'est pm
           heureux = heureux + 12; // ajoute 12h
@@ -689,6 +707,21 @@ void loop() {
       if (heureEte(lanee, lemois, lejour, heureux)) {
         Serial.println("heure d'ete");
         ntpheure = ntpheure + 1;
+      }
+      if ( lanee != year(epoch) % 100) {
+        Clock.setYear(year(epoch) % 100);
+        Serial.print("Anée : ");
+        Serial.println(year(epoch) % 100);
+      }
+      if ( lemois != month(epoch)) {
+        Clock.setMonth(month(epoch));
+        Serial.print("Mois : ");
+        Serial.println(month(epoch));
+      }
+      if ( lejour != day(epoch)) {
+        Clock.setDate(day(epoch));
+        Serial.print("Jour : ");
+        Serial.println(day(epoch));
       }
       if (heureux != ntpheure) {
         Clock.setHour(ntpheure);
