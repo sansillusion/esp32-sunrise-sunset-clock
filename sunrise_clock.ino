@@ -42,10 +42,10 @@ int growled[] = {12, 13, 14}; // les pins pour les lumieres (use mosfet)
 int passer[] = {0, 0, 0, 0, 0, 0, 0}; // confir pour savoir quel est desactivee
 int passerx[] = {0, 0, 0, 0, 0, 0, 0}; // confir pour savoir quel est desactivee par temperature
 int etat[] = {0, 0, 0, 0, 0, 0, 0}; // confir pour savoir quel etat est la led
-int allumeH[] = {9, 9, 6, 6, 6, 6, 6}; // confir pour savoir quel heur allumer
-int allumeM[] = {30, 30, 0, 0, 0, 0, 0}; // confir pour savoir quel minute allumer
-int eteintH[] = {22, 21, 21, 21, 21, 21, 23}; // confir pour savoir quel heur eteindre
-int eteintM[] = {0, 30, 0, 0, 0, 0, 0}; // confir pour savoir quel minute eteindre
+int allumeH[] = {9, 6, 6, 6, 6, 6, 9}; // confir pour savoir quel heur allumer
+int allumeM[] = {30, 30, 0, 0, 0, 0, 30}; // confir pour savoir quel minute allumer
+int eteintH[] = {21, 21, 21, 21, 21, 23, 22}; // confir pour savoir quel heur eteindre
+int eteintM[] = {0, 0, 0, 0, 0, 0, 0}; // confir pour savoir quel minute eteindre
 int dureF = 45; // confir pour savoir duree total du fade  (fade duration)
 
 DS3231 Clock;
@@ -61,7 +61,7 @@ String liens = "";
 const String css = "<style>\n"
                    ".heure,.minute {width:35px;}"
                    "input[name=\"ah0\"],input[name=\"am0\"],input[name=\"eh0\"],input[name=\"em0\"] {background-color:#AAFFEE;}"
-                   "input[name=\"ah1\"],input[name=\"am1\"],input[name=\"eh1\"],input[name=\"em1\"] {background-color:#AAFFEE;}"
+                   "input[name=\"ah6\"],input[name=\"am6\"],input[name=\"eh6\"],input[name=\"em6\"] {background-color:#AAFFEE;}"
                    "</style>\n";
 // end of stylesheet for web pages
 
@@ -217,6 +217,9 @@ void handleTimer() {
       }
     }
   }
+  contenu += "<br><h3>Dur&eacute;e du fade:</h3><input class=\"minute\" type=\"number\" min=\"0\" max=\"59\" value=\"";
+  contenu += dureF;
+  contenu += "\" name=\"dure\">\n";
   contenu += "</form><br>\n";
   contenu += liens;
   contenu += "</div>\n"
@@ -264,6 +267,14 @@ void handleChange() {
   Serial.println("");
   Serial.println(addy);
   Serial.println("Change");
+  String dur = server.arg("dure");
+  if (dur != "") {
+    dureF = dur.toInt();
+    Serial.print("dure");
+    Serial.print(" : ");
+    Serial.println(dureF);
+    preferences.putInt("duref", dureF);
+  }
   for (int i = 0; i < 7; i = i + 1) {
     String llah = "ah";
     llah += i;
@@ -593,6 +604,7 @@ void setup() {
     eteintH[i] = ehi;
     eteintM[i] = emi;
   }
+  dureF = preferences.getInt("duref", dureF);
   configur = preferences.getInt("configur", 0);
   Serial.println("Pref loaded!");
   xTaskCreatePinnedToCore(loop1, "loop1", 8192, NULL, 1, NULL, 0);
@@ -633,6 +645,8 @@ void setup() {
         heureux = heureux + 12; // ajoute 12h
       }
     }
+    int dayofweek = Clock.getDoW();// de 1 a 7
+    int jj = dayofweek - 1;
     int lamin = Clock.getMinute();
     int lanee = Clock.getYear();
     int lemois = Clock.getMonth(Century);
@@ -640,6 +654,11 @@ void setup() {
     if (heureEte(lanee, lemois, lejour, heureux)) {
       Serial.println("heure d'ete");
       ntpheure = ntpheure + 1;
+    }
+    if ( dayofweek != dayOfWeek(epoch)) {
+      Clock.setDoW(dayOfWeek(epoch));
+      Serial.print("Jour de la semaine : ");
+      Serial.println(dayOfWeek(epoch));
     }
     if ( lanee != year(epoch) % 100) {
       Clock.setYear(year(epoch) % 100);
@@ -692,6 +711,8 @@ void loop() {
           heureux = heureux + 12; // ajoute 12h
         }
       }
+      int dayofweek = Clock.getDoW();// de 1 a 7
+      int jj = dayofweek - 1;
       int lamin = Clock.getMinute();
       int lanee = Clock.getYear();
       int lemois = Clock.getMonth(Century);
@@ -699,6 +720,11 @@ void loop() {
       if (heureEte(lanee, lemois, lejour, heureux)) {
         Serial.println("heure d'ete");
         ntpheure = ntpheure + 1;
+      }
+      if ( dayofweek != dayOfWeek(epoch)) {
+        Clock.setDoW(dayOfWeek(epoch));
+        Serial.print("Jour de la semaine : ");
+        Serial.println(dayOfWeek(epoch));
       }
       if ( lanee != year(epoch) % 100) {
         Clock.setYear(year(epoch) % 100);
