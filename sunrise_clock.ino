@@ -145,6 +145,10 @@ void handleTimer() {
     }
   }
   int lamin = Clock.getMinute();
+  int lanee = Clock.getYear();
+  int lemois = Clock.getMonth(Century);
+  int lejour = Clock.getDate();
+
   String contenu = "<!DOCTYPE html>\n<html lang=\"en\" dir=\"ltr\" class=\"client-nojs\">\n<head>\n";
   contenu += "<meta charset=\"UTF-8\" />\n<title>Timer 420</title>\n"
              "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n";
@@ -153,6 +157,12 @@ void handleTimer() {
   contenu += "</head>\n<body>\n"
              "<div style=\"text-align:center;width:100%;\">\n"
              "<h1>";
+  contenu += lejour;
+  contenu += "/";
+  contenu += lemois;
+  contenu += "/20";
+  contenu += lanee;
+  contenu += " - ";
   contenu += heureux;
   contenu += ":";
   if (lamin <= 9) {
@@ -218,7 +228,7 @@ void handleTimer() {
       }
     }
   }
-  contenu += "<br><h3>Dur&eacute;e du fade:</h3><input class=\"minute\" type=\"number\" min=\"0\" max=\"59\" value=\"";
+  contenu += "<br><h3>Dur&eacute;e du fade:</h3><input class=\"minute\" type=\"number\" min=\"15\" max=\"59\" value=\"";
   contenu += dureF;
   contenu += "\" name=\"dure\">\n";
   contenu += "</form><br>\n";
@@ -580,9 +590,9 @@ void loop1(void *pvParameters) {
         previousMillis = currentMillis;
         lumiereloop();
       }
-      if (onvaspar == 1){
+      if (onvaspar == 1) {
         allumex();
-      }else{
+      } else {
         eteintx();
       }
     }
@@ -740,7 +750,6 @@ void loop() {
         }
       }
       int dayofweek = Clock.getDoW();// de 1 a 7
-      int jj = dayofweek - 1;
       int lamin = Clock.getMinute();
       int lanee = Clock.getYear();
       int lemois = Clock.getMonth(Century);
