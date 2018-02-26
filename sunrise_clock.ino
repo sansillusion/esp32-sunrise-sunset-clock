@@ -21,7 +21,6 @@
 #else
 #define ARDUINO_RUNNING_CORE 1
 #endif
-unsigned long previousMillis = 0;
 unsigned long previousMillisc = 0;
 unsigned long previousMillist = 0;
 unsigned long previousMillisfr = 0;
@@ -73,33 +72,30 @@ void lesliens() {
 void fadeR() {
   if (rouge < r) {
     rouge++;
-    ledcWrite(1, rouge);
   } else if (rouge > r) {
     rouge--;
-    ledcWrite(1, rouge);
   }
+  ledcWrite(1, rouge);
 }
 
 // used to fade green
 void fadeG() {
   if (vert < g) {
     vert++;
-    ledcWrite(2, vert);
   } else if (vert > g) {
     vert--;
-    ledcWrite(2, vert);
   }
+  ledcWrite(2, vert);
 }
 
 // used to fade blue
 void fadeB() {
   if (bleu < b) {
     bleu++;
-    ledcWrite(3, bleu);
   } else if (bleu > b) {
     bleu--;
-    ledcWrite(3, bleu);
   }
+  ledcWrite(3, bleu);
 }
 
 char* string2char(String command) {
@@ -361,12 +357,12 @@ void handleNotFound() {
 }
 
 void allume() {
-  r = 255;
-  g = 255;
-  b = 255;
-  unsigned long dureB = dureF / 3 * 60000 / 255;
-  unsigned long dureG = dureF / 2 * 60000 / 255;
-  unsigned long dureR = dureF * 60000 / 255;
+  r = 4095;
+  g = 4095;
+  b = 4095;
+  unsigned long dureB = dureF / 3 * 60000 / 4095;
+  unsigned long dureG = dureF / 2 * 60000 / 4095;
+  unsigned long dureR = dureF * 60000 / 4095;
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillisfr >= dureR) {
     previousMillisfr = currentMillis;
@@ -386,9 +382,9 @@ void eteint() {
   r = 0;
   g = 0;
   b = 0;
-  unsigned long dureB = dureF / 3 * 60000 / 255;
-  unsigned long dureG = dureF / 2 * 60000 / 255;
-  unsigned long dureR = dureF * 60000 / 255;
+  unsigned long dureB = dureF / 3 * 60000 / 4095;
+  unsigned long dureG = dureF / 2 * 60000 / 4095;
+  unsigned long dureR = dureF * 60000 / 4095;
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillisfr >= dureR) {
     previousMillisfr = currentMillis;
@@ -549,11 +545,7 @@ void lumiereloop() {
 void loop1(void *pvParameters) {
   while (1) {
     if (configur == 1) {
-      unsigned long currentMillis = millis();
-      if (currentMillis - previousMillis >= 1000) {
-        previousMillis = currentMillis;
-        lumiereloop();
-      }
+      lumiereloop();
     }
     vTaskDelay( 128 ); // wait / yield time to other tasks
   }
@@ -575,9 +567,9 @@ void setup() {
   digitalWrite(growled[0], LOW);
   digitalWrite(growled[1], LOW);
   digitalWrite(growled[2], LOW);
-  ledcSetup(1, 12000, 8); // 12 kHz PWM, 8-bit resolution
-  ledcSetup(2, 12000, 8);
-  ledcSetup(3, 12000, 8);
+  ledcSetup(1, 12000, 12); // 12 kHz PWM, 8-bit resolution
+  ledcSetup(2, 12000, 12);
+  ledcSetup(3, 12000, 12);
   preferences.begin("soleil", false);
   for (int i = 0; i < 7; i = i + 1) {
     String ahs = "ah";
