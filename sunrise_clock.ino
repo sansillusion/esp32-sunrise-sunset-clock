@@ -21,6 +21,7 @@
 #else
 #define ARDUINO_RUNNING_CORE 1
 #endif
+unsigned long previousMillis = 0;
 unsigned long previousMillisc = 0;
 unsigned long previousMillist = 0;
 unsigned long previousMillisfr = 0;
@@ -37,7 +38,7 @@ long b = 0;
 int rouge = 0;
 int vert = 0;
 int bleu = 0;
-
+int onvaspar = 0;
 int growled[] = {12, 13, 14}; // les pins pour les lumieres (use mosfet)
 int passer[] = {0, 0, 0, 0, 0, 0, 0}; // confir pour savoir quel est desactivee
 int passerx[] = {0, 0, 0, 0, 0, 0, 0}; // confir pour savoir quel est desactivee par temperature
@@ -368,12 +369,21 @@ void handleNotFound() {
 }
 
 void allume() {
+  onvaspar = 1;
+}
+
+void allumex() {
   r = 4095;
   g = 4095;
   b = 4095;
   unsigned long dureB = dureF / 3 * 60000 / 4095;
   unsigned long dureG = dureF / 2 * 60000 / 4095;
   unsigned long dureR = dureF * 60000 / 4095;
+  if (dureF == 0) {
+    dureB = 1;
+    dureG = 1;
+    dureR = 1;
+  }
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillisfr >= dureR) {
     previousMillisfr = currentMillis;
@@ -390,12 +400,21 @@ void allume() {
 }
 
 void eteint() {
+  onvaspar = 0;
+}
+
+void eteintx() {
   r = 0;
   g = 0;
   b = 0;
   unsigned long dureB = dureF / 3 * 60000 / 4095;
   unsigned long dureG = dureF / 2 * 60000 / 4095;
   unsigned long dureR = dureF * 60000 / 4095;
+  if (dureF == 0) {
+    dureB = 1;
+    dureG = 1;
+    dureR = 1;
+  }
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillisfr >= dureR) {
     previousMillisfr = currentMillis;
@@ -556,9 +575,18 @@ void lumiereloop() {
 void loop1(void *pvParameters) {
   while (1) {
     if (configur == 1) {
-      lumiereloop();
+      unsigned long currentMillis = millis();
+      if (currentMillis - previousMillis >= 2000) {
+        previousMillis = currentMillis;
+        lumiereloop();
+      }
+      if (onvaspar == 1){
+        allumex();
+      }else{
+        eteintx();
+      }
     }
-    vTaskDelay( 128 ); // wait / yield time to other tasks
+    vTaskDelay( 156 ); // wait / yield time to other tasks
   }
 }
 
@@ -607,7 +635,7 @@ void setup() {
   dureF = preferences.getInt("duref", dureF);
   configur = preferences.getInt("configur", 0);
   Serial.println("Pref loaded!");
-  xTaskCreatePinnedToCore(loop1, "loop1", 8192, NULL, 1, NULL, 0);
+  xTaskCreatePinnedToCore(loop1, "loop1", 8192, NULL, 2, NULL, 0);
   WiFiManager wifiManager;
   wifiManager.setAPCallback(configModeCallback); //cree un callback pour savoir si passer par wifimanager
   wifiManager.setTimeout(240);
