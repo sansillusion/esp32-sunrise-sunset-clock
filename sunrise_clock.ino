@@ -48,7 +48,9 @@ int allumeM[] = {30, 30, 0, 0, 0, 0, 30}; // confir pour savoir quel minute allu
 int eteintH[] = {21, 21, 21, 21, 21, 23, 22}; // confir pour savoir quel heur eteindre
 int eteintM[] = {0, 0, 0, 0, 0, 0, 0}; // confir pour savoir quel minute eteindre
 int dureF = 45; // confir pour savoir duree total du fade  (fade duration)
+int jourdesemaine = 0;
 
+RTClib RTC;
 DS3231 Clock;
 bool Century = false;
 bool h12;
@@ -59,12 +61,24 @@ unsigned int manageur = 0;
 String liens = "";
 
 // stylesheet for web pages
-const String css = "<style>\n"
-                   ".heure,.minute {width:35px;}"
-                   "input[name=\"ah0\"],input[name=\"am0\"],input[name=\"eh0\"],input[name=\"em0\"] {background-color:#AAFFEE;}"
-                   "input[name=\"ah6\"],input[name=\"am6\"],input[name=\"eh6\"],input[name=\"em6\"] {background-color:#AAFFEE;}"
-                   "</style>\n";
-// end of stylesheet for web pages
+String css;
+void lecss() {
+  css = "<style>\n"
+        ".heure,.minute {width:35px;}"
+        "input[name=\"ah0\"],input[name=\"am0\"],input[name=\"eh0\"],input[name=\"em0\"] {background-color:#AAFFEE;}"
+        "input[name=\"ah6\"],input[name=\"am6\"],input[name=\"eh6\"],input[name=\"em6\"] {background-color:#AAFFEE;}"
+        "input[name=\"ah";
+  css += jourdesemaine;
+  css += "\"],input[name=\"am";
+  css += jourdesemaine;
+  css += "\"],input[name=\"eh";
+  css += jourdesemaine;
+  css += "\"],input[name=\"em";
+  css += jourdesemaine;
+  css += "\"] {background-color:#FFCCCC;}"
+         "</style>\n";
+  // end of stylesheet for web pages
+}
 
 void lesliens() {
   liens = "<a href=\"/\">Acceuil</a>";
@@ -138,19 +152,27 @@ int heureEte(int year, int month, int dayOfMonth, int hour) {
 
 // timer page
 void handleTimer() {
-  int heureux = Clock.getHour(h12, PM);
-  if (h12 == 1) { //check si le rtc est en mode 12h
-    if (PM == 1) { //si oui et que c'est pm
-      heureux = heureux  + 12; // ajoute 12h
-    }
+  DateTime now = RTC.now();
+  int heureux = now.hour();
+  int dayofweek = dayOfWeek(now.unixtime()); // de 1 a 7
+  int i = dayofweek - 1;
+  int lamin = now.minute();
+  int lanee = now.year();
+  int lemois = now.month();
+  int lejour = now.day();
+  if (heureux == 165) {
+    Serial.println("RTC ERREUR !!!! Using NTP if possible");
+    int epoch = timeClient.getEpochTime();
+    heureux = hour(epoch);
+    dayofweek = dayOfWeek(epoch); // de 1 a 7
+    i = dayofweek - 1;
+    lamin = minute(epoch);
+    lanee = year(epoch);
+    lemois = month(epoch);
+    lejour = day(epoch);
   }
-  int lamin = Clock.getMinute();
-  int lanee = Clock.getYear();
-  int lemois = Clock.getMonth(Century);
-  int lejour = Clock.getDate();
-
   String contenu = "<!DOCTYPE html>\n<html lang=\"en\" dir=\"ltr\" class=\"client-nojs\">\n<head>\n";
-  contenu += "<meta charset=\"UTF-8\" />\n<title>Timer 420</title>\n"
+  contenu += "<meta charset=\"UTF-8\" />\n<title>Lampe Soleil</title>\n"
              "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n";
   contenu += css;
   contenu += "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js\"></script>\n";
@@ -160,7 +182,7 @@ void handleTimer() {
   contenu += lejour;
   contenu += "/";
   contenu += lemois;
-  contenu += "/20";
+  contenu += "/";
   contenu += lanee;
   contenu += " - ";
   contenu += heureux;
@@ -441,16 +463,19 @@ void eteintx() {
 }
 
 void lumiereloop() {
-  int heureux = Clock.getHour(h12, PM);
-  int dayofweek = Clock.getDoW();// de 1 a 7
+  DateTime now = RTC.now();
+  int heureux = now.hour();
+  int dayofweek = dayOfWeek(now.unixtime()); // de 1 a 7
   int i = dayofweek - 1;
-  if (h12 == 1) { //check si le rtc est en mode 12h
-    if (PM == 1) { //si oui et que c'est pm
-      heureux = heureux  + 12; // ajoute 12h
-    }
+  int lamin = now.minute();
+  if (heureux == 165) {
+    Serial.println("RTC ERREUR !!!! Using NTP if possible");
+    int epoch = timeClient.getEpochTime();
+    heureux = hour(epoch);
+    dayofweek = dayOfWeek(epoch); // de 1 a 7
+    i = dayofweek - 1;
+    lamin = minute(epoch);
   }
-  int lamin = Clock.getMinute();
-  float tempC;
   if (passer[i] == 0) {
     if (allumeH[i] < eteintH[i]) {
       if (heureux >= allumeH[i] && heureux < eteintH[i] ) { //Allume H ok
@@ -661,6 +686,7 @@ void setup() {
   }
   MDNS.begin("soleil");// use preferance pour le nom
   lesliens();
+  lecss();
   if (configur == 0) {
     preferences.putInt("configur", 1);
     configur = 1;
@@ -685,6 +711,8 @@ void setup() {
     }
     int dayofweek = Clock.getDoW();// de 1 a 7
     int jj = dayofweek - 1;
+    jourdesemaine = jj;
+    lecss();
     int lamin = Clock.getMinute();
     int lanee = Clock.getYear();
     int lemois = Clock.getMonth(Century);
@@ -695,6 +723,8 @@ void setup() {
     }
     if ( dayofweek != dayOfWeek(epoch)) {
       Clock.setDoW(dayOfWeek(epoch));
+      jourdesemaine = dayOfWeek(epoch) - 1;
+      lecss();
       Serial.print("Jour de la semaine : ");
       Serial.println(dayOfWeek(epoch));
     }
@@ -739,6 +769,7 @@ void loop() {
   }
   if (currentMillis - previousMillist >= 60000) { // met le RTC a jour avec le NTP chaques minutes si changements
     previousMillist = currentMillis;
+    lecss();
     if (timeClient.update()) {
       int ntpheure = timeClient.getHours();
       int ntpmins = timeClient.getMinutes();
@@ -750,6 +781,7 @@ void loop() {
         }
       }
       int dayofweek = Clock.getDoW();// de 1 a 7
+      jourdesemaine = dayofweek - 1;
       int lamin = Clock.getMinute();
       int lanee = Clock.getYear();
       int lemois = Clock.getMonth(Century);
@@ -760,6 +792,8 @@ void loop() {
       }
       if ( dayofweek != dayOfWeek(epoch)) {
         Clock.setDoW(dayOfWeek(epoch));
+        jourdesemaine = dayOfWeek(epoch) - 1;
+        lecss();
         Serial.print("Jour de la semaine : ");
         Serial.println(dayOfWeek(epoch));
       }
