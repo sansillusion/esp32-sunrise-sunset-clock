@@ -39,9 +39,7 @@ int rouge = 0;
 int vert = 0;
 int bleu = 0;
 int onvaspar = 0;
-int growled[] = {12, 13, 14}; // les pins pour les lumieres (use mosfet)
-int passer[] = {0, 0, 0, 0, 0, 0, 0}; // confir pour savoir quel est desactivee
-int passerx[] = {0, 0, 0, 0, 0, 0, 0}; // confir pour savoir quel est desactivee par temperature
+int sunled[] = {12, 13, 14}; // les pins pour les lumieres (use mosfet)
 int etat[] = {0, 0, 0, 0, 0, 0, 0}; // confir pour savoir quel etat est la led
 int allumeH[] = {9, 6, 6, 6, 6, 6, 9}; // confir pour savoir quel heur allumer
 int allumeM[] = {30, 30, 0, 0, 0, 0, 30}; // confir pour savoir quel minute allumer
@@ -204,58 +202,50 @@ void handleTimer() {
              "<h2>Allumage :</h2>\n"
              "H:";
   for (int i = 0; i < 7; i = i + 1) {
-    if (passer[i] == 0) {
-      contenu += "<input class=\"heure\" type=\"number\" min=\"0\" max=\"23\" value=\"";
-      contenu += allumeH[i];
-      contenu += "\" name=\"ah";
-      contenu += i;
-      contenu += "\">\n";
-      if (i != 6) {
-        contenu += "&nbsp;";
-      }
+    contenu += "<input class=\"heure\" type=\"number\" min=\"0\" max=\"23\" value=\"";
+    contenu += allumeH[i];
+    contenu += "\" name=\"ah";
+    contenu += i;
+    contenu += "\">\n";
+    if (i != 6) {
+      contenu += "&nbsp;";
     }
   }
   contenu += "<br>\n"
              "M:";
   for (int i = 0; i < 7; i = i + 1) {
-    if (passer[i] == 0) {
-      contenu += "<input class=\"minute\" type=\"number\" min=\"0\" max=\"59\" value=\"";
-      contenu += allumeM[i];
-      contenu += "\" name=\"am";
-      contenu += i;
-      contenu += "\">\n";
-      if (i != 6) {
-        contenu += "&nbsp;";
-      }
+    contenu += "<input class=\"minute\" type=\"number\" min=\"0\" max=\"59\" value=\"";
+    contenu += allumeM[i];
+    contenu += "\" name=\"am";
+    contenu += i;
+    contenu += "\">\n";
+    if (i != 6) {
+      contenu += "&nbsp;";
     }
   }
   contenu += "<br>\n"
              "<h2>Eteignage :</h2>\n"
              "H:";
   for (int i = 0; i < 7; i = i + 1) {
-    if (passer[i] == 0) {
-      contenu += "<input class=\"heure\" type=\"number\" min=\"0\" max=\"23\" value=\"";
-      contenu += eteintH[i];
-      contenu += "\" name=\"eh";
-      contenu += i;
-      contenu += "\">\n";
-      if (i != 6) {
-        contenu += "&nbsp;";
-      }
+    contenu += "<input class=\"heure\" type=\"number\" min=\"0\" max=\"23\" value=\"";
+    contenu += eteintH[i];
+    contenu += "\" name=\"eh";
+    contenu += i;
+    contenu += "\">\n";
+    if (i != 6) {
+      contenu += "&nbsp;";
     }
   }
   contenu += "<br>\n"
              "M:";
   for (int i = 0; i < 7; i = i + 1) {
-    if (passer[i] == 0) {
-      contenu += "<input class=\"minute\" type=\"number\" min=\"0\" max=\"59\" value=\"";
-      contenu += eteintM[i];
-      contenu += "\" name=\"em";
-      contenu += i;
-      contenu += "\">\n";
-      if (i != 6) {
-        contenu += "&nbsp;";
-      }
+    contenu += "<input class=\"minute\" type=\"number\" min=\"0\" max=\"59\" value=\"";
+    contenu += eteintM[i];
+    contenu += "\" name=\"em";
+    contenu += i;
+    contenu += "\">\n";
+    if (i != 6) {
+      contenu += "&nbsp;";
     }
   }
   contenu += "<br><h3>Dur&eacute;e du fade:</h3><input class=\"minute\" type=\"number\" min=\"15\" max=\"59\" value=\"";
@@ -492,134 +482,107 @@ void lumiereloop() {
   }
   jourdesemaine = i;
   lecss();
-  if (passer[i] == 0) {
-    if (allumeH[i] < eteintH[i]) {
-      if (heureux >= allumeH[i] && heureux < eteintH[i] ) { //Allume H ok
-        if (heureux == allumeH[i]) {
-          if (lamin >= allumeM[i]) {
-            if (passer[i] == 0) {
-              allume(); //Allume la lumiere
-              etat[i] = 1;
-            }
-          } else {
-            eteint(); //Eteint la lumiere
-            etat[i] = 0;
-          }
+  if (allumeH[i] < eteintH[i]) {
+    if (heureux >= allumeH[i] && heureux < eteintH[i] ) { //Allume H ok
+      if (heureux == allumeH[i]) {
+        if (lamin >= allumeM[i]) {
+          allume(); //Allume la lumiere
+          etat[i] = 1;
         } else {
-          if (passer[i] == 0) {
-            allume(); //Allume la lumiere
-            etat[i] = 1;
-          }
-        }
-      } else if (heureux >= eteintH[i]) {
-        if (heureux == eteintH[i]) {
-          if (lamin >= eteintM[i]) {
-            eteint(); // Eteint la lumiere a reviser
-            etat[i] = 0;
-          } else {
-            if (passer[i] == 0) {
-              allume(); //Allume la lumiere
-              etat[i] = 1;
-            }
-          }
-        } else {
-          eteint(); // Eteint la lumiere a reviser
+          eteint(); //Eteint la lumiere
           etat[i] = 0;
         }
       } else {
-        eteint(); // Eteint la lumiere
+        allume(); //Allume la lumiere
+        etat[i] = 1;
+      }
+    } else if (heureux >= eteintH[i]) {
+      if (heureux == eteintH[i]) {
+        if (lamin >= eteintM[i]) {
+          eteint(); // Eteint la lumiere a reviser
+          etat[i] = 0;
+        } else {
+          allume(); //Allume la lumiere
+          etat[i] = 1;
+        }
+      } else {
+        eteint(); // Eteint la lumiere a reviser
         etat[i] = 0;
       }
+    } else {
+      eteint(); // Eteint la lumiere
+      etat[i] = 0;
     }
-    if (allumeH[i] > eteintH[i]) {
-      if (heureux >= allumeH[i] && heureux <= 23) {                //Start
-        if (heureux == allumeH[i]) {
-          if (lamin >= allumeM[i]) {
-            if (passer[i] == 0) {
-              allume(); //Allume la lumiere
-              etat[i] = 1;
-            }
-          } else {
-            eteint(); //Eteint la lumiere
-            etat[i] = 0;
-          }
+  }
+  if (allumeH[i] > eteintH[i]) {
+    if (heureux >= allumeH[i] && heureux <= 23) {                //Start
+      if (heureux == allumeH[i]) {
+        if (lamin >= allumeM[i]) {
+          allume(); //Allume la lumiere
+          etat[i] = 1;
         } else {
-          if (heureux > eteintH[i]) {
-            if (passer[i] == 0) {
-              allume(); //Allume la lumiere
-              etat[i] = 1;
-            }
-          } else {
-            if (passer[i] == 0) {
-              allume(); //Allume la lumiere
-              etat[i] = 1;
-            }
-          }
+          eteint(); //Eteint la lumiere
+          etat[i] = 0;
         }
-      }
-      else if (heureux < eteintH[i]) {
-        if (passer[i] == 0) {
+      } else {
+        if (heureux > eteintH[i]) {
+          allume(); //Allume la lumiere
+          etat[i] = 1;
+        } else {
           allume(); //Allume la lumiere
           etat[i] = 1;
         }
       }
-      else if (heureux >= eteintH[i] && heureux < allumeH[i]) {
-        if (heureux == eteintH[i]) {
-          if (lamin >= eteintM[i]) {
-            eteint(); //Eteint la lumiere
-            etat[i] = 0;
-          } else {
-            if (passer[i] == 0) {
-              allume(); //Allume la lumiere
-              etat[i] = 1;
-            }
-          }
-        } else {
-          eteint(); //Eteint la lumiere
-          etat[i] = 0;
-        }
-      }
     }
-    if (allumeH[i] == eteintH[i]) {
-      if (allumeM[i] < eteintM[i]) {
-        if (lamin < eteintM[i]) {
-          if (lamin >= allumeM[i]) {
-            if (passer[i] == 0) {
-              allume(); //Allume la lumiere
-              etat[i] = 1;
-            }
-          }
-        } else {
+    else if (heureux < eteintH[i]) {
+      allume(); //Allume la lumiere
+      etat[i] = 1;
+    }
+    else if (heureux >= eteintH[i] && heureux < allumeH[i]) {
+      if (heureux == eteintH[i]) {
+        if (lamin >= eteintM[i]) {
           eteint(); //Eteint la lumiere
           etat[i] = 0;
-        }
-      }
-      if (allumeM[i] > eteintM[i]) {
-        if (lamin < eteintM[i]) {
-          if (passer[i] == 0) {
-            allume(); //Allume la lumiere
-            etat[i] = 1;
-          }
         } else {
-          if (lamin >= allumeM[i]) {
-            if (passer[i] == 0) {
-              allume(); //Allume la lumiere
-              etat[i] = 1;
-            }
-          } else {
-            eteint(); //Eteint la lumiere
-            etat[i] = 0;
-          }
+          allume(); //Allume la lumiere
+          etat[i] = 1;
         }
-      }
-      if (allumeM[i] == eteintM[i]) { // le meme heure d'allumage et d'eteignage == eteint permanent
+      } else {
         eteint(); //Eteint la lumiere
         etat[i] = 0;
       }
     }
-  } else {
-    eteint(); //Eteint la lumiere car elle est desactivee
-    etat[i] = 0;
+  }
+  if (allumeH[i] == eteintH[i]) {
+    if (allumeM[i] < eteintM[i]) {
+      if (lamin < eteintM[i]) {
+        if (lamin >= allumeM[i]) {
+          allume(); //Allume la lumiere
+          etat[i] = 1;
+        }
+      } else {
+        eteint(); //Eteint la lumiere
+        etat[i] = 0;
+      }
+    }
+    if (allumeM[i] > eteintM[i]) {
+      if (lamin < eteintM[i]) {
+        allume(); //Allume la lumiere
+        etat[i] = 1;
+      } else {
+        if (lamin >= allumeM[i]) {
+          allume(); //Allume la lumiere
+          etat[i] = 1;
+        } else {
+          eteint(); //Eteint la lumiere
+          etat[i] = 0;
+        }
+      }
+    }
+    if (allumeM[i] == eteintM[i]) { // le meme heure d'allumage et d'eteignage == eteint permanent
+      eteint(); //Eteint la lumiere
+      etat[i] = 0;
+    }
   }
 }
 
@@ -648,15 +611,15 @@ void configModeCallback (WiFiManager *myWiFiManager) {
 void setup() {
   Serial.begin(115200);
   Wire.begin();
-  ledcAttachPin(growled[0], 1);
-  ledcAttachPin(growled[1], 2);
-  ledcAttachPin(growled[2], 3);
-  pinMode(growled[0], OUTPUT);
-  pinMode(growled[1], OUTPUT);
-  pinMode(growled[2], OUTPUT);
-  digitalWrite(growled[0], LOW);
-  digitalWrite(growled[1], LOW);
-  digitalWrite(growled[2], LOW);
+  pinMode(sunled[0], OUTPUT);
+  pinMode(sunled[1], OUTPUT);
+  pinMode(sunled[2], OUTPUT);
+  digitalWrite(sunled[0], LOW);
+  digitalWrite(sunled[1], LOW);
+  digitalWrite(sunled[2], LOW);
+  ledcAttachPin(sunled[0], 1);
+  ledcAttachPin(sunled[1], 2);
+  ledcAttachPin(sunled[2], 3);
   ledcSetup(1, 12000, 12); // 12 kHz PWM, 12-bit resolution
   ledcSetup(2, 12000, 12);
   ledcSetup(3, 12000, 12);
