@@ -127,7 +127,7 @@ char* string2char(String command) {
 }
 
 int heureEte(int year, int month, int dayOfMonth, int hour) {
-  int DST;
+  int DST = 0;
   // ********************* Calculate offset for Sunday *********************
   int y = year;                          // DS3231 uses two digit year (required here)
   int x = (y + y / 4 + 2) % 7;    // remainder will identify which day of month
