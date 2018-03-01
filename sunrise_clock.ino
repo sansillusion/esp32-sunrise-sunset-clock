@@ -143,6 +143,9 @@ int heureEte(int year, int month, int dayOfMonth, int hour) {
   {
     DST = 1;
   }
+  if ((month > 3) && (month < 11)){
+    DST = 1;
+  }
   // ************* Test DST: ENDS on 1st Sunday of Nov @ 2:00 AM ************
   if (month == 11 && dayOfMonth == (7 - x) && hour >= 2)
   {
